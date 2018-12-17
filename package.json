@@ -1,8 +1,8 @@
 {
   "name": "img-tools",
-  "version": "1.0.7-beta4-teste12",
+  "version": "1.0.8",
   "description": "Tool for manipulation of the images",
-  "main": "dist/index..js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc"
