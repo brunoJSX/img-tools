@@ -1,0 +1,28 @@
+{
+  "name": "img-tools",
+  "version": "1.0.7-beta4-teste12",
+  "description": "Tool for manipulation of the images",
+  "main": "dist/index..js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TryckBR/img-tools.git"
+  },
+  "author": "Bruno Henrique",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TryckBR/img-tools/issues"
+  },
+  "homepage": "https://github.com/TryckBR/img-tools#readme",
+  "devDependencies": {
+    "@types/node": "^10.12.15",
+    "ts-loader": "^5.3.1",
+    "typescript": "^3.2.2",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "dependencies": {}
+}
