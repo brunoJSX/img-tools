@@ -102,11 +102,23 @@ function base64ToBlob(e) {
 function rotateImage(direcaoRotate, idElement) {
     let el = document.getElementById(idElement);
 
+    let angle = 0;
+
     if (direcaoRotate === 'left') {
+        angle = angle - 90;
+
         el.setAttribute('style', `
-            transform: rotate(90deg) translateY(-100%);
-            -webkit-transform: rotate(90deg) translateY(-100%);
-            -ms-transform: rotate(90deg) translateY(-100%);
+            transform: rotate(${angle}deg);
+            -webkit-transform: rotate(${angle}deg);
+            -ms-transform: rotate(${angle}deg);
+        `)
+    } else {
+        angle = angle + 90;
+
+        el.setAttribute('style', `
+            transform: rotate(${angle}deg);
+            -webkit-transform: rotate(${angle}deg);
+            -ms-transform: rotate(${angle}deg);
         `)
     }
 }

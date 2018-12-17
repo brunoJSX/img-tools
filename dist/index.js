@@ -139,8 +139,14 @@ function base64ToBlob(e) {
 exports.base64ToBlob = base64ToBlob;
 function rotateImage(direcaoRotate, idElement) {
     var el = document.getElementById(idElement);
+    var angle = 0;
     if (direcaoRotate === 'left') {
-        el.setAttribute('style', "\n            transform: rotate(90deg) translateY(-100%);\n            -webkit-transform: rotate(90deg) translateY(-100%);\n            -ms-transform: rotate(90deg) translateY(-100%);\n        ");
+        angle = angle - 90;
+        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
+    }
+    else {
+        angle = angle + 90;
+        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
     }
 }
 exports.rotateImage = rotateImage;
