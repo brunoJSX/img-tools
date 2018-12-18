@@ -1,4 +1,4 @@
-interface Thumbs_Config {
+export interface Thumbs_Config {
     size: number;
     type: "image/jpeg" | "image/png" | "image/jpg";
     quality?: number;
@@ -34,4 +34,3 @@ export declare class Resize {
     base64ToBlob(base64: string): Promise<Blob>;
     getOrientation(callback: Function): void;
 }
-export {};

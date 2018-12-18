@@ -1,6 +1,6 @@
 'use strict';
 
-interface Thumbs_Config {
+export interface Thumbs_Config {
     size: number,
     type: "image/jpeg" | "image/png" | "image/jpg",
     quality?: number
