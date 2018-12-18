@@ -12,7 +12,7 @@ export declare class Resize {
      * Gera as thumbnails a partir dos dados
      * informados no constructor
      */
-    generateThumbs(): Promise<any>;
+    generateThumbs(): Promise<string[]>;
     /**
      * Gera canvas para desenha imagem dentro
      */

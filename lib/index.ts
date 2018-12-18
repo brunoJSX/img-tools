@@ -65,7 +65,7 @@ export class Resize {
      * Gera as thumbnails a partir dos dados
      * informados no constructor
      */
-    async generateThumbs(): Promise<any> {
+    async generateThumbs(): Promise<string[]> {
         const quant: number = this._thumbs_config.length; // Quantidade de miniaturas a ser geradas
 
         // Função que está configurado para gerar minuaturas 
