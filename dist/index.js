@@ -137,15 +137,15 @@ function base64ToBlob(e) {
     });
 }
 exports.base64ToBlob = base64ToBlob;
+var angle = 0;
 function rotateImage(direcaoRotate, idElement) {
     var el = document.getElementById(idElement);
-    var angle = 0;
     if (direcaoRotate === 'left') {
-        angle = angle - 90;
+        angle = angle - 20;
         el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
     }
     else {
-        angle = angle + 90;
+        angle = angle + 20;
         el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
     }
 }

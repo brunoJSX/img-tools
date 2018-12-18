@@ -99,13 +99,13 @@ function base64ToBlob(e) {
 
 }
 
+let angle = 0;
+
 function rotateImage(direcaoRotate, idElement) {
     let el = document.getElementById(idElement);
 
-    let angle = 0;
-
     if (direcaoRotate === 'left') {
-        angle = angle - 90;
+        angle = angle - 20;
 
         el.setAttribute('style', `
             transform: rotate(${angle}deg);
@@ -113,7 +113,7 @@ function rotateImage(direcaoRotate, idElement) {
             -ms-transform: rotate(${angle}deg);
         `)
     } else {
-        angle = angle + 90;
+        angle = angle + 20;
 
         el.setAttribute('style', `
             transform: rotate(${angle}deg);
