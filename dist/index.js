@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 function resize(fileBase64, size, type, quality) {
-    if (size === void 0) { size = 200; }
+    if (size === void 0) { size = [200]; }
     if (type === void 0) { type = 'image/jpeg'; }
     if (quality === void 0) { quality = 0.92; }
     return new Promise(function (resolve, reject) {

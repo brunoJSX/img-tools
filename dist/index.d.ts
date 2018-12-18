@@ -1,4 +1,4 @@
-declare function resize(fileBase64: any, size?: number, type?: string, quality?: number): Promise<{}>;
+declare function resize(fileBase64: any, size?: Array<number>, type?: string, quality?: number): Promise<{}>;
 /**
      * Converte string base64 em objeto blob do JavaScript
      */

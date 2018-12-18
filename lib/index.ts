@@ -1,4 +1,4 @@
-function resize(fileBase64, size = [200], type = 'image/jpeg', quality = 0.92) {
+function resize(fileBase64, size: Array<number> = [200], type = 'image/jpeg', quality = 0.92) {
     return new Promise((resolve, reject) => {
         var ret = [];
         if (Array.isArray(size)) {
