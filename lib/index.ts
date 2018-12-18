@@ -104,23 +104,24 @@ let angle = 0;
 function rotateImage(direcaoRotate, idElement) {
     let el = document.getElementById(idElement);
 
-    if (direcaoRotate === 'left') {
-        angle = angle - 20;
+    el.style.border = "3px solid green";
+    // if (direcaoRotate === 'left') {
+    //     angle = angle - 20;
 
-        el.setAttribute('style', `
-            transform: rotate(${angle}deg);
-            -webkit-transform: rotate(${angle}deg);
-            -ms-transform: rotate(${angle}deg);
-        `)
-    } else {
-        angle = angle + 20;
+    //     el.setAttribute('style', `
+    //         transform: rotate(${angle}deg);
+    //         -webkit-transform: rotate(${angle}deg);
+    //         -ms-transform: rotate(${angle}deg);
+    //     `)
+    // } else {
+    //     angle = angle + 20;
 
-        el.setAttribute('style', `
-            transform: rotate(${angle}deg);
-            -webkit-transform: rotate(${angle}deg);
-            -ms-transform: rotate(${angle}deg);
-        `)
-    }
+    //     el.setAttribute('style', `
+    //         transform: rotate(${angle}deg);
+    //         -webkit-transform: rotate(${angle}deg);
+    //         -ms-transform: rotate(${angle}deg);
+    //     `)
+    // }
 }
 
 const getOrientation = (file: File, callback: Function) => {
