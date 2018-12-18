@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -35,162 +35,247 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-function resize(fileBase64, size, type, quality) {
-    if (size === void 0) { size = [200]; }
-    if (type === void 0) { type = 'image/jpeg'; }
-    if (quality === void 0) { quality = 0.92; }
-    return new Promise(function (resolve, reject) {
-        var ret = [];
-        if (Array.isArray(size)) {
-            var promisesArray = [];
-            for (var i = 0; i < size.length; i++) {
-                promisesArray.push(resizeCanvas(fileBase64, size[i], type, quality));
-            }
-            var promisesResolved = Promise.all(promisesArray);
-            promisesResolved.then(function (result) {
-                resolve(result);
-            }).catch(function (err) {
-                reject(err);
-            });
+var Resize = /** @class */ (function () {
+    function Resize(file, thumbs_config) {
+        this._file = '';
+        this._thumbs_config = [{
+                size: 200,
+                type: "image/jpeg",
+                quality: 0.8
+            }];
+        try {
+            if (typeof file === 'string')
+                if (this.isBase64(file))
+                    this._file = file;
+                else
+                    throw new Error("File not is type base64 or File");
+            else
+                this._file = file;
         }
-        else {
-            resizeCanvas(fileBase64, size, type, quality).then(function (base64) {
-                ret.push(base64);
-                resolve(ret);
-            }).catch(function (err) {
-                reject(err);
-            });
+        catch (e) {
+            console.error(e);
         }
-    });
-}
-exports.resize = resize;
-function resizeCanvas(fileBase64, size, type, quality) {
-    return __awaiter(this, void 0, void 0, function () {
-        var img, canvas, MAX_WIDTH, MAX_HEIGHT, img_width, img_height, ctx;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    img = document.createElement("img");
-                    img.src = fileBase64;
-                    canvas = document.createElement("canvas");
-                    return [4 /*yield*/, createImgElement(img, canvas)];
-                case 1:
-                    _a.sent();
-                    MAX_WIDTH = size;
-                    MAX_HEIGHT = size;
-                    img_width = img.width;
-                    img_height = img.height;
-                    console.log("Width da image: ", img.width);
-                    console.log("Height da image: ", img.height);
-                    if (img_width > img_height) {
-                        if (img_width > MAX_WIDTH) {
-                            img_height *= MAX_WIDTH / img_width;
-                            img_width = MAX_WIDTH;
-                        }
-                    }
-                    else {
-                        if (img_height > MAX_HEIGHT) {
-                            img_width *= MAX_HEIGHT / img_height;
-                            img_height = MAX_HEIGHT;
-                        }
-                    }
-                    canvas.width = img_width;
-                    canvas.height = img_height;
-                    ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, img_width, img_height);
-                    return [2 /*return*/, canvas.toDataURL(type, quality)]; // O segundo parâmetro é um int de 0 a 1 que indica a qualidade da imagem
-            }
-        });
-    });
-}
-/**
-* Espere até que o contexto do canvas seja desenhado
-*/
-function createImgElement(img, canvas) {
-    return new Promise(function (resolve, reject) {
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve(true);
-    });
-}
-/**
-     * Converte string base64 em objeto blob do JavaScript
-     */
-function base64ToBlob(e) {
-    return new Promise(function (resolve, reject) {
-        var byteString = atob(e.base64.split(',')[1]);
-        // separate out the mime component
-        var mimeString = e.base64.split(',')[0].split(':')[1].split(';')[0];
-        // write the bytes of the string to an ArrayBuffer
-        var ab = new ArrayBuffer(byteString.length);
-        var ia = new Uint8Array(ab);
-        for (var i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
+        try {
+            if (thumbs_config.length > 0)
+                this._thumbs_config = thumbs_config;
+            else
+                throw new Error("Required sizes for generate thumbnails");
         }
-        // write the ArrayBuffer to a blob, and you're done
-        var bb = new Blob([ab], { type: mimeString });
-        bb.name = e.name;
-        if (bb)
-            resolve(bb);
-        else
-            reject('Falha ao criar Blob!');
-    });
-}
-exports.base64ToBlob = base64ToBlob;
-var angle = 0;
-function rotateImage(direcaoRotate, idElement) {
-    var el = document.getElementById(idElement);
-    if (direcaoRotate === 'left') {
-        angle = angle - 20;
-        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
+        catch (e) {
+            console.error(e);
+        }
     }
-    else {
-        angle = angle + 20;
-        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
-    }
-}
-exports.rotateImage = rotateImage;
-var getOrientation = function (file, callback) {
-    var reader = new FileReader();
-    reader.onload = function (event) {
-        if (!event.target) {
-            return;
-        }
-        var file = event.target;
-        var view = new DataView(file.result);
-        if (view.getUint16(0, false) != 0xFFD8) {
-            return callback(-2);
-        }
-        var length = view.byteLength;
-        var offset = 2;
-        while (offset < length) {
-            if (view.getUint16(offset + 2, false) <= 8)
-                return callback(-1);
-            var marker = view.getUint16(offset, false);
-            offset += 2;
-            if (marker == 0xFFE1) {
-                if (view.getUint32(offset += 2, false) != 0x45786966) {
-                    return callback(-1);
-                }
-                var little = view.getUint16(offset += 6, false) == 0x4949;
-                offset += view.getUint32(offset + 4, little);
-                var tags = view.getUint16(offset, little);
-                offset += 2;
-                for (var i = 0; i < tags; i++) {
-                    if (view.getUint16(offset + (i * 12), little) == 0x0112) {
-                        return callback(view.getUint16(offset + (i * 12) + 8, little));
-                    }
-                }
-            }
-            else if ((marker & 0xFF00) != 0xFF00) {
-                break;
-            }
-            else {
-                offset += view.getUint16(offset, false);
-            }
-        }
-        return callback(-1);
+    Resize.prototype.isBase64 = function (str) {
+        var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+        return base64regex.test(str.split(',')[1]);
     };
-    reader.readAsArrayBuffer(file);
-};
-exports.getOrientation = getOrientation;
+    /**
+     * Gera as thumbnails a partir dos dados
+     * informados no constructor
+     */
+    Resize.prototype.generateThumbs = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var quant, gerThumb, thumbsPromises, i;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        quant = this._thumbs_config.length;
+                        gerThumb = function (cnt) { return __awaiter(_this, void 0, void 0, function () {
+                            var getCanvas, data;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.createCanvas()];
+                                    case 1:
+                                        getCanvas = _a.sent();
+                                        data = {
+                                            size: this._thumbs_config[cnt].size,
+                                            img: getCanvas.img,
+                                            canvas: getCanvas.canvas,
+                                            type: this._thumbs_config[cnt].type,
+                                            quality: this._thumbs_config[cnt].quality
+                                        };
+                                        return [4 /*yield*/, this.drawNewThumb(data)];
+                                    case 2: 
+                                    // Gera thumb e retorna em base64
+                                    return [2 /*return*/, _a.sent()];
+                                }
+                            });
+                        }); };
+                        thumbsPromises = [];
+                        for (i = 0; i < quant; i++) {
+                            thumbsPromises.push(gerThumb(i));
+                        }
+                        return [4 /*yield*/, Promise.all(thumbsPromises)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    /**
+     * Gera canvas para desenha imagem dentro
+     */
+    Resize.prototype.createCanvas = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var img, _a, canvas, ctx;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        img = document.createElement("img");
+                        if (!(typeof this._file === 'string')) return [3 /*break*/, 1];
+                        img.src = this._file;
+                        return [3 /*break*/, 3];
+                    case 1:
+                        _a = img;
+                        return [4 /*yield*/, this.readFile()];
+                    case 2:
+                        _a.src = _b.sent();
+                        _b.label = 3;
+                    case 3:
+                        canvas = document.createElement("canvas");
+                        ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+                        return [2 /*return*/, { img: img, canvas: canvas }];
+                }
+            });
+        });
+    };
+    /**
+     * Resedenha uma foto dentro de um canvas com um tamanho
+     * pré-definido
+     * @param size Tamanho da thumb
+     * @param img elemento imagem renderizado
+     * @param canvas elemento canvas criado
+     */
+    Resize.prototype.drawNewThumb = function (data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var MAX_WIDTH, MAX_HEIGHT, img_width, img_height, ctx;
+            return __generator(this, function (_a) {
+                MAX_WIDTH = data.size;
+                MAX_HEIGHT = data.size;
+                img_width = data.img.width;
+                img_height = data.img.height;
+                if (img_width > img_height) {
+                    if (img_width > MAX_WIDTH) {
+                        img_height *= MAX_WIDTH / img_width;
+                        img_width = MAX_WIDTH;
+                    }
+                }
+                else {
+                    if (img_height > MAX_HEIGHT) {
+                        img_width *= MAX_HEIGHT / img_height;
+                        img_height = MAX_HEIGHT;
+                    }
+                }
+                data.canvas.width = img_width;
+                data.canvas.height = img_height;
+                ctx = data.canvas.getContext("2d");
+                ctx.drawImage(data.img, 0, 0, img_width, img_height);
+                console.log('Perfil foto', { type: data.type, quality: data.quality });
+                return [2 /*return*/, data.canvas.toDataURL(data.type, data.quality)]; // O segundo parâmetro é um int de 0 a 1 que indica a qualidade da imagem
+            });
+        });
+    };
+    /**
+     * Lê um arquivo e retorna codificado em base64
+     * @return {promise}
+     * @param file {Arquivo do tipo File}
+     */
+    Resize.prototype.readFile = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
+                        if (typeof _this._file === "object") {
+                            var reader = new FileReader();
+                            reader.onload = function (ev) {
+                                if (!event.target) {
+                                    reject();
+                                }
+                                var file = event.target;
+                                resolve(file.result);
+                            };
+                            reader.onerror = function (error) {
+                                reject(error);
+                            };
+                            reader.readAsDataURL(_this._file);
+                        }
+                        else
+                            reject("File already is in base64");
+                    })];
+            });
+        });
+    };
+    Resize.prototype.base64ToBlob = function (base64) {
+        return new Promise(function (resolve, reject) {
+            var byteString = atob(base64.split(',')[1]);
+            // Separa o tipo de arquivo na base64
+            var mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+            // write the bytes of the string to an ArrayBuffer
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            // write the ArrayBuffer to a blob, and you're done
+            var bb = new Blob([ab], { type: mimeString });
+            if (bb)
+                resolve(bb);
+            else
+                reject('Falha ao criar Blob!');
+        });
+    };
+    Resize.prototype.getOrientation = function (callback) {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            if (!event.target) {
+                return;
+            }
+            var file = event.target;
+            var view = new DataView(file.result);
+            if (view.getUint16(0, false) != 0xFFD8) {
+                return callback(-2);
+            }
+            var length = view.byteLength;
+            var offset = 2;
+            while (offset < length) {
+                if (view.getUint16(offset + 2, false) <= 8)
+                    return callback(-1);
+                var marker = view.getUint16(offset, false);
+                offset += 2;
+                if (marker == 0xFFE1) {
+                    if (view.getUint32(offset += 2, false) != 0x45786966) {
+                        return callback(-1);
+                    }
+                    var little = view.getUint16(offset += 6, false) == 0x4949;
+                    offset += view.getUint32(offset + 4, little);
+                    var tags = view.getUint16(offset, little);
+                    offset += 2;
+                    for (var i = 0; i < tags; i++) {
+                        if (view.getUint16(offset + (i * 12), little) == 0x0112) {
+                            return callback(view.getUint16(offset + (i * 12) + 8, little));
+                        }
+                    }
+                }
+                else if ((marker & 0xFF00) != 0xFF00) {
+                    break;
+                }
+                else {
+                    offset += view.getUint16(offset, false);
+                }
+            }
+            return callback(-1);
+        };
+        try {
+            if (typeof this._file === "object")
+                reader.readAsArrayBuffer(this._file);
+            else
+                throw new Error('File type not permitted, only file type Blob');
+        }
+        catch (e) {
+            console.error(e);
+        }
+    };
+    return Resize;
+}());
+exports.Resize = Resize;
