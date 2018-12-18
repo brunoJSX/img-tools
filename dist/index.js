@@ -140,22 +140,14 @@ exports.base64ToBlob = base64ToBlob;
 var angle = 0;
 function rotateImage(direcaoRotate, idElement) {
     var el = document.getElementById(idElement);
-    el.style.border = "3px solid green";
-    // if (direcaoRotate === 'left') {
-    //     angle = angle - 20;
-    //     el.setAttribute('style', `
-    //         transform: rotate(${angle}deg);
-    //         -webkit-transform: rotate(${angle}deg);
-    //         -ms-transform: rotate(${angle}deg);
-    //     `)
-    // } else {
-    //     angle = angle + 20;
-    //     el.setAttribute('style', `
-    //         transform: rotate(${angle}deg);
-    //         -webkit-transform: rotate(${angle}deg);
-    //         -ms-transform: rotate(${angle}deg);
-    //     `)
-    // }
+    if (direcaoRotate === 'left') {
+        angle = angle - 20;
+        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
+    }
+    else {
+        angle = angle + 20;
+        el.setAttribute('style', "\n            transform: rotate(" + angle + "deg);\n            -webkit-transform: rotate(" + angle + "deg);\n            -ms-transform: rotate(" + angle + "deg);\n        ");
+    }
 }
 exports.rotateImage = rotateImage;
 var getOrientation = function (file, callback) {
