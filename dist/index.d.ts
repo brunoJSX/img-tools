@@ -31,6 +31,6 @@ export declare class Resize {
      * @param file {Arquivo do tipo File}
      */
     readFile(): Promise<string>;
-    base64ToBlob(base64: string): Promise<Blob>;
     getOrientation(callback: Function): void;
 }
+export declare function base64ToBlob(base64: string): Promise<Blob>;
