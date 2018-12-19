@@ -117,11 +117,11 @@ var Resize = /** @class */ (function () {
      */
     Resize.prototype.createCanvas = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var img, _a, canvas, ctx;
+            var img, _a, img_loaded, canvas, ctx;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        img = document.createElement("img");
+                        img = new Image();
                         if (!(typeof this._file === 'string')) return [3 /*break*/, 1];
                         img.src = this._file;
                         return [3 /*break*/, 3];
@@ -131,7 +131,10 @@ var Resize = /** @class */ (function () {
                     case 2:
                         _a.src = _b.sent();
                         _b.label = 3;
-                    case 3:
+                    case 3: return [4 /*yield*/, img.onloadend];
+                    case 4:
+                        img_loaded = _b.sent();
+                        console.log(img_loaded);
                         canvas = document.createElement("canvas");
                         ctx = canvas.getContext("2d");
                         ctx.drawImage(img, 0, 0);

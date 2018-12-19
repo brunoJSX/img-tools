@@ -1,6 +1,6 @@
 {
   "name": "img-tools",
-  "version": "1.0.8-beta9",
+  "version": "1.0.8-beta10",
   "description": "Tool for manipulation of the images",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
