@@ -167,7 +167,6 @@ var Resize = /** @class */ (function () {
                 data.canvas.height = img_height;
                 ctx = data.canvas.getContext("2d");
                 ctx.drawImage(data.img, 0, 0, img_width, img_height);
-                console.log('Perfil foto', { type: data.type, quality: data.quality });
                 return [2 /*return*/, data.canvas.toDataURL(data.type, data.quality)]; // O segundo parâmetro é um int de 0 a 1 que indica a qualidade da imagem
             });
         });
