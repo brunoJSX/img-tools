@@ -116,31 +116,24 @@ var Resize = /** @class */ (function () {
      * Gera canvas para desenha imagem dentro
      */
     Resize.prototype.createCanvas = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var img, _a, img_loaded, canvas, ctx;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        img = new Image();
-                        if (!(typeof this._file === 'string')) return [3 /*break*/, 1];
-                        img.src = this._file;
-                        return [3 /*break*/, 3];
-                    case 1:
-                        _a = img;
-                        return [4 /*yield*/, this.readFile()];
-                    case 2:
-                        _a.src = _b.sent();
-                        _b.label = 3;
-                    case 3: return [4 /*yield*/, img.onloadend];
-                    case 4:
-                        img_loaded = _b.sent();
-                        console.log(img_loaded);
-                        canvas = document.createElement("canvas");
-                        ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0);
-                        return [2 /*return*/, { img: img, canvas: canvas }];
-                }
-            });
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            var img = new Image();
+            img.onload = function () {
+                var canvas = document.createElement("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                resolve({ img: img, canvas: canvas });
+            };
+            if (typeof _this._file === 'string')
+                img.src = _this._file;
+            else {
+                _this.readFile().then(function (base64) {
+                    img.src = base64;
+                }).catch(function (error) {
+                    reject(error);
+                });
+            }
         });
     };
     /**

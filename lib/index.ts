@@ -97,24 +97,32 @@ export class Resize {
     /**
      * Gera canvas para desenha imagem dentro
      */
-    private async createCanvas(): Promise<Canvas> {
-        let img: HTMLImageElement = new Image();
+    private createCanvas(): Promise<Canvas> {
+        return new Promise((resolve, reject) => {
+            let img: HTMLImageElement = new Image();
 
-        if (typeof this._file === 'string')
-            img.src = this._file;
-        else {
-            img.src = await this.readFile();
-        }
+            img.onload = () => {
+                let canvas = document.createElement("canvas");
+                let ctx = (canvas.getContext("2d") as CanvasRenderingContext2D);
+        
+                ctx.drawImage(img, 0, 0);
+        
+                resolve({ img: img, canvas: canvas });
+            }
+    
+            if (typeof this._file === 'string')
+                img.src = this._file;
+            else {
+                this.readFile().then((base64: string) => {
+                    img.src = base64;
+                }).catch((error) => {
+                    reject(error);
+                });
+    
+            }
 
-        let img_loaded = await img.onloadend;
-        console.log(img_loaded);
+        });
 
-        let canvas = document.createElement("canvas");
-        let ctx = (canvas.getContext("2d") as CanvasRenderingContext2D);
-
-        ctx.drawImage(img, 0, 0);
-
-        return { img: img, canvas: canvas };
     }
 
     /**
