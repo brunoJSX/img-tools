@@ -181,29 +181,6 @@ export class Resize {
         });
     }
 
-    base64ToBlob(base64: string): Promise<Blob> {
-        return new Promise((resolve, reject) => {
-            var byteString = atob(base64.split(',')[1]);
-
-            // Separa o tipo de arquivo na base64
-            var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
-
-            // write the bytes of the string to an ArrayBuffer
-            var ab = new ArrayBuffer(byteString.length);
-            var ia = new Uint8Array(ab);
-            for (var i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-
-            // write the ArrayBuffer to a blob, and you're done
-            var bb: any = new Blob([ab], { type: mimeString });
-
-            if (bb) resolve(bb)
-            else reject('Falha ao criar Blob!');
-        });
-
-    }
-
     getOrientation(callback: Function) {
         var reader = new FileReader();
 
@@ -263,6 +240,29 @@ export class Resize {
             console.error(e);
         }
     }
+
+}
+
+export function base64ToBlob(base64: string): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        var byteString = atob(base64.split(',')[1]);
+
+        // Separa o tipo de arquivo na base64
+        var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
+
+        // write the bytes of the string to an ArrayBuffer
+        var ab = new ArrayBuffer(byteString.length);
+        var ia = new Uint8Array(ab);
+        for (var i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        // write the ArrayBuffer to a blob, and you're done
+        var bb: any = new Blob([ab], { type: mimeString });
+
+        if (bb) resolve(bb)
+        else reject('Falha ao criar Blob!');
+    });
 
 }
 
