@@ -25,10 +25,9 @@ export class Resize {
     private _thumbs_config: Array<Thumbs_Config> = [{
         size: 200,
         type: "image/jpeg",
-        quality: 0.8
     }];
 
-    constructor(file: string | File, thumbs_config: Array<Thumbs_Config>) {
+    constructor(file: string | File, thumbs_config?: Array<Thumbs_Config>) {
         try {
             if (typeof file === 'string')
                 if (this.isBase64(file))
@@ -44,16 +43,8 @@ export class Resize {
             console.error(e);
         }
 
-        try {
-            if (thumbs_config.length > 0)
-                this._thumbs_config = thumbs_config;
-
-            else
-                throw new Error("Required sizes for generate thumbnails");
-        }
-        catch (e) {
-            console.error(e);
-        }
+        if (thumbs_config)
+            this._thumbs_config = thumbs_config;
     }
 
     isBase64(str: string): boolean {
@@ -104,12 +95,12 @@ export class Resize {
             img.onload = () => {
                 let canvas = document.createElement("canvas");
                 let ctx = (canvas.getContext("2d") as CanvasRenderingContext2D);
-        
+
                 ctx.drawImage(img, 0, 0);
-        
+
                 resolve({ img: img, canvas: canvas });
             }
-    
+
             if (typeof this._file === 'string')
                 img.src = this._file;
             else {
@@ -118,7 +109,7 @@ export class Resize {
                 }).catch((error) => {
                     reject(error);
                 });
-    
+
             }
 
         });
@@ -193,55 +184,55 @@ export class Resize {
     base64ToBlob(base64: string): Promise<Blob> {
         return new Promise((resolve, reject) => {
             var byteString = atob(base64.split(',')[1]);
-    
+
             // Separa o tipo de arquivo na base64
             var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
-    
+
             // write the bytes of the string to an ArrayBuffer
             var ab = new ArrayBuffer(byteString.length);
             var ia = new Uint8Array(ab);
             for (var i = 0; i < byteString.length; i++) {
                 ia[i] = byteString.charCodeAt(i);
             }
-    
+
             // write the ArrayBuffer to a blob, and you're done
             var bb: any = new Blob([ab], { type: mimeString });
-    
+
             if (bb) resolve(bb)
             else reject('Falha ao criar Blob!');
         });
-    
+
     }
 
-    getOrientation (callback: Function) {
+    getOrientation(callback: Function) {
         var reader = new FileReader();
-    
+
         reader.onload = (event: ProgressEvent) => {
-    
+
             if (!event.target) {
                 return;
             }
-    
+
             const file = event.target as FileReader;
             const view = new DataView(file.result as ArrayBuffer);
-    
+
             if (view.getUint16(0, false) != 0xFFD8) {
                 return callback(-2);
             }
-    
+
             const length = view.byteLength
             let offset = 2;
-    
+
             while (offset < length) {
                 if (view.getUint16(offset + 2, false) <= 8) return callback(-1);
                 let marker = view.getUint16(offset, false);
                 offset += 2;
-    
+
                 if (marker == 0xFFE1) {
                     if (view.getUint32(offset += 2, false) != 0x45786966) {
                         return callback(-1);
                     }
-    
+
                     let little = view.getUint16(offset += 6, false) == 0x4949;
                     offset += view.getUint32(offset + 4, little);
                     let tags = view.getUint16(offset, little);
@@ -260,7 +251,7 @@ export class Resize {
             }
             return callback(-1);
         };
-    
+
         try {
             if (typeof this._file === "object")
                 reader.readAsArrayBuffer(this._file);
@@ -268,7 +259,7 @@ export class Resize {
                 throw new Error('File type not permitted, only file type Blob');
 
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
         }
     }
@@ -311,7 +302,7 @@ export class Resize {
 //     // let original = new Image();
 //     // original.src = await resize.readFile(file);
 //     // document.body.appendChild(original);
-    
+
 
 //     resize.generateThumbs().then((result: string[]) => {
 //         result.map((base64: string) => {
@@ -319,7 +310,7 @@ export class Resize {
 //             thumb.src = base64;
 //             thumb.style.margin = "25px";
 //             document.body.appendChild(thumb);
-            
+
 //             resize.base64ToBlob(base64).then((value: any) => {
 //                 resize.getOrientation((e: number) => {
 //                     value.orientation = e;

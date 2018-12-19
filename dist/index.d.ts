@@ -6,7 +6,7 @@ export interface Thumbs_Config {
 export declare class Resize {
     private _file;
     private _thumbs_config;
-    constructor(file: string | File, thumbs_config: Array<Thumbs_Config>);
+    constructor(file: string | File, thumbs_config?: Array<Thumbs_Config>);
     isBase64(str: string): boolean;
     /**
      * Gera as thumbnails a partir dos dados

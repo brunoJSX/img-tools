@@ -41,7 +41,6 @@ var Resize = /** @class */ (function () {
         this._thumbs_config = [{
                 size: 200,
                 type: "image/jpeg",
-                quality: 0.8
             }];
         try {
             if (typeof file === 'string')
@@ -55,15 +54,8 @@ var Resize = /** @class */ (function () {
         catch (e) {
             console.error(e);
         }
-        try {
-            if (thumbs_config.length > 0)
-                this._thumbs_config = thumbs_config;
-            else
-                throw new Error("Required sizes for generate thumbnails");
-        }
-        catch (e) {
-            console.error(e);
-        }
+        if (thumbs_config)
+            this._thumbs_config = thumbs_config;
     }
     Resize.prototype.isBase64 = function (str) {
         var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
