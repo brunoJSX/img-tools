@@ -65,7 +65,7 @@ var Resize = /** @class */ (function () {
      * Gera as thumbnails a partir dos dados
      * informados no constructor
      */
-    Resize.prototype.generateThumbs = function () {
+    Resize.prototype.generateThumbs = function (fromEXIF) {
         return __awaiter(this, void 0, void 0, function () {
             var quant, gerThumb, thumbsPromises, i;
             var _this = this;
@@ -74,7 +74,7 @@ var Resize = /** @class */ (function () {
                     case 0:
                         quant = this._thumbs_config.length;
                         gerThumb = function (cnt) { return __awaiter(_this, void 0, void 0, function () {
-                            var getCanvas, data;
+                            var getCanvas, data, orientation_1;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0: return [4 /*yield*/, this.createCanvas()];
@@ -87,8 +87,16 @@ var Resize = /** @class */ (function () {
                                             type: this._thumbs_config[cnt].type,
                                             quality: this._thumbs_config[cnt].quality
                                         };
-                                        return [4 /*yield*/, this.drawNewThumb(data)];
-                                    case 2: 
+                                        if (!fromEXIF) return [3 /*break*/, 4];
+                                        return [4 /*yield*/, this.getOrientation().catch(function (e) { return e; })];
+                                    case 2:
+                                        orientation_1 = _a.sent();
+                                        return [4 /*yield*/, this.resetOrientation(orientation_1).catch(function (e) { return e; })];
+                                    case 3:
+                                        _a.sent();
+                                        _a.label = 4;
+                                    case 4: return [4 /*yield*/, this.drawNewThumb(data)];
+                                    case 5: 
                                     // Gera thumb e retorna em base64
                                     return [2 /*return*/, _a.sent()];
                                 }
@@ -110,18 +118,18 @@ var Resize = /** @class */ (function () {
     Resize.prototype.createCanvas = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            var img = new Image();
-            img.onload = function () {
-                var canvas = document.createElement("canvas");
-                var ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0);
-                resolve({ img: img, canvas: canvas });
+            _this._image = new Image();
+            _this._image.onload = function () {
+                _this._canvas = document.createElement("canvas");
+                var ctx = _this._canvas.getContext("2d");
+                ctx.drawImage(_this._image, 0, 0);
+                resolve({ img: _this._image, canvas: _this._canvas });
             };
             if (typeof _this._file === 'string')
-                img.src = _this._file;
+                _this._image.src = _this._file;
             else {
                 _this.readFile().then(function (base64) {
-                    img.src = base64;
+                    _this._image.src = base64;
                 }).catch(function (error) {
                     reject(error);
                 });
@@ -193,60 +201,163 @@ var Resize = /** @class */ (function () {
             });
         });
     };
-    Resize.prototype.getOrientation = function (callback) {
-        var reader = new FileReader();
-        reader.onload = function (event) {
-            if (!event.target) {
-                return;
-            }
-            var file = event.target;
-            var view = new DataView(file.result);
-            if (view.getUint16(0, false) != 0xFFD8) {
-                return callback(-2);
-            }
-            var length = view.byteLength;
-            var offset = 2;
-            while (offset < length) {
-                if (view.getUint16(offset + 2, false) <= 8)
-                    return callback(-1);
-                var marker = view.getUint16(offset, false);
-                offset += 2;
-                if (marker == 0xFFE1) {
-                    if (view.getUint32(offset += 2, false) != 0x45786966) {
-                        return callback(-1);
-                    }
-                    var little = view.getUint16(offset += 6, false) == 0x4949;
-                    offset += view.getUint32(offset + 4, little);
-                    var tags = view.getUint16(offset, little);
-                    offset += 2;
-                    for (var i = 0; i < tags; i++) {
-                        if (view.getUint16(offset + (i * 12), little) == 0x0112) {
-                            return callback(view.getUint16(offset + (i * 12) + 8, little));
+    Resize.prototype.getOrientation = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
+                        var reader = new FileReader();
+                        reader.onload = function (event) {
+                            if (!event.target) {
+                                return;
+                            }
+                            var file = event.target;
+                            var view = new DataView(file.result);
+                            if (view.getUint16(0, false) != 0xFFD8) {
+                                resolve(-2);
+                            }
+                            var length = view.byteLength;
+                            var offset = 2;
+                            while (offset < length) {
+                                if (view.getUint16(offset + 2, false) <= 8)
+                                    return resolve(-1);
+                                var marker = view.getUint16(offset, false);
+                                offset += 2;
+                                if (marker == 0xFFE1) {
+                                    if (view.getUint32(offset += 2, false) != 0x45786966) {
+                                        resolve(-1);
+                                    }
+                                    var little = view.getUint16(offset += 6, false) == 0x4949;
+                                    offset += view.getUint32(offset + 4, little);
+                                    var tags = view.getUint16(offset, little);
+                                    offset += 2;
+                                    for (var i = 0; i < tags; i++) {
+                                        if (view.getUint16(offset + (i * 12), little) == 0x0112) {
+                                            resolve(view.getUint16(offset + (i * 12) + 8, little));
+                                        }
+                                    }
+                                }
+                                else if ((marker & 0xFF00) != 0xFF00) {
+                                    break;
+                                }
+                                else {
+                                    offset += view.getUint16(offset, false);
+                                }
+                            }
+                            resolve(-1);
+                        };
+                        if (typeof _this._file === "object")
+                            reader.readAsArrayBuffer(_this._file);
+                        else {
+                            base64ToBlob(_this._file).then(function (file) {
+                                reader.readAsArrayBuffer(file);
+                            }).catch(function (e) {
+                                reject(e);
+                            });
                         }
-                    }
-                }
-                else if ((marker & 0xFF00) != 0xFF00) {
-                    break;
+                    })];
+            });
+        });
+    };
+    Resize.prototype.resetOrientation = function (srcOrientation) {
+        return __awaiter(this, void 0, void 0, function () {
+            var width, height, ctx;
+            return __generator(this, function (_a) {
+                width = this._image.width, height = this._image.height, ctx = this._canvas.getContext("2d");
+                // set proper canvas dimensions before transform & export
+                if (4 < srcOrientation && srcOrientation < 9) {
+                    this._canvas.width = height;
+                    this._canvas.height = width;
                 }
                 else {
-                    offset += view.getUint16(offset, false);
+                    this._canvas.width = width;
+                    this._canvas.height = height;
                 }
-            }
-            return callback(-1);
-        };
-        try {
-            if (typeof this._file === "object")
-                reader.readAsArrayBuffer(this._file);
-            else
-                throw new Error('File type not permitted, only file type Blob');
-        }
-        catch (e) {
-            console.error(e);
-        }
+                // transform context before drawing image
+                switch (srcOrientation) {
+                    case 2:
+                        ctx.transform(-1, 0, 0, 1, width, 0);
+                        break;
+                    case 3:
+                        ctx.transform(-1, 0, 0, -1, width, height);
+                        break;
+                    case 4:
+                        ctx.transform(1, 0, 0, -1, 0, height);
+                        break;
+                    case 5:
+                        ctx.transform(0, 1, 1, 0, 0, 0);
+                        break;
+                    case 6:
+                        ctx.transform(0, 1, -1, 0, height, 0);
+                        break;
+                    case 7:
+                        ctx.transform(0, -1, -1, 0, height, width);
+                        break;
+                    case 8:
+                        ctx.transform(0, -1, 1, 0, 0, width);
+                        break;
+                    default: break;
+                }
+                return [2 /*return*/];
+            });
+        });
     };
     return Resize;
 }());
 exports.Resize = Resize;
+function resetOrientation(srcBase64, srcOrientation, typeImage, callback) {
+    var img = new Image();
+    if (typeof srcBase64 === 'object') {
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            srcBase64 = ev.target.result;
+        };
+        reader.readAsDataURL(srcBase64);
+    }
+    img.onload = function () {
+        var width = img.width, height = img.height, canvas = document.createElement('canvas'), ctx = canvas.getContext("2d");
+        // set proper canvas dimensions before transform & export
+        if (4 < srcOrientation && srcOrientation < 9) {
+            canvas.width = height;
+            canvas.height = width;
+        }
+        else {
+            canvas.width = width;
+            canvas.height = height;
+        }
+        // transform context before drawing image
+        switch (srcOrientation) {
+            case 2:
+                ctx.transform(-1, 0, 0, 1, width, 0);
+                break;
+            case 3:
+                ctx.transform(-1, 0, 0, -1, width, height);
+                break;
+            case 4:
+                ctx.transform(1, 0, 0, -1, 0, height);
+                break;
+            case 5:
+                ctx.transform(0, 1, 1, 0, 0, 0);
+                break;
+            case 6:
+                ctx.transform(0, 1, -1, 0, height, 0);
+                break;
+            case 7:
+                ctx.transform(0, -1, -1, 0, height, width);
+                break;
+            case 8:
+                ctx.transform(0, -1, 1, 0, 0, width);
+                break;
+            default: break;
+        }
+        // draw image
+        ctx.drawImage(img, 0, 0);
+        // export base64
+        callback(canvas.toDataURL(typeImage));
+    };
+    img.src = srcBase64;
+}
+exports.resetOrientation = resetOrientation;
 function base64ToBlob(base64) {
     return new Promise(function (resolve, reject) {
         var byteString = atob(base64.split(',')[1]);
