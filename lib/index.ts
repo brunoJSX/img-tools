@@ -182,7 +182,7 @@ export class Resize {
     }
 
     getOrientation(callback: Function) {
-        var reader = new FileReader();
+        let reader = new FileReader();
 
         reader.onload = (event: ProgressEvent) => {
 
@@ -241,24 +241,65 @@ export class Resize {
         }
     }
 
+    resetOrientation(srcBase64: string, srcOrientation: number, typeImage: string, callback: Function) {
+        let img = new Image();
+
+        img.onload = function () {
+            let width = img.width,
+                height = img.height,
+                canvas = document.createElement('canvas'),
+                ctx = canvas.getContext("2d");
+
+            // set proper canvas dimensions before transform & export
+            if (4 < srcOrientation && srcOrientation < 9) {
+                canvas.width = height;
+                canvas.height = width;
+            } else {
+                canvas.width = width;
+                canvas.height = height;
+            }
+
+            // transform context before drawing image
+            switch (srcOrientation) {
+                case 2: ctx.transform(-1, 0, 0, 1, width, 0); break;
+                case 3: ctx.transform(-1, 0, 0, -1, width, height); break;
+                case 4: ctx.transform(1, 0, 0, -1, 0, height); break;
+                case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+                case 6: ctx.transform(0, 1, -1, 0, height, 0); break;
+                case 7: ctx.transform(0, -1, -1, 0, height, width); break;
+                case 8: ctx.transform(0, -1, 1, 0, 0, width); break;
+                default: break;
+            }
+
+            // draw image
+            ctx.drawImage(img, 0, 0);
+
+            // export base64
+            callback(canvas.toDataURL(typeImage));
+        };
+
+        img.src = srcBase64;
+    }
+
 }
+
 
 export function base64ToBlob(base64: string): Promise<Blob> {
     return new Promise((resolve, reject) => {
-        var byteString = atob(base64.split(',')[1]);
+        let byteString = atob(base64.split(',')[1]);
 
         // Separa o tipo de arquivo na base64
-        var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
+        let mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
 
         // write the bytes of the string to an ArrayBuffer
-        var ab = new ArrayBuffer(byteString.length);
-        var ia = new Uint8Array(ab);
-        for (var i = 0; i < byteString.length; i++) {
+        let ab = new ArrayBuffer(byteString.length);
+        let ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
             ia[i] = byteString.charCodeAt(i);
         }
 
         // write the ArrayBuffer to a blob, and you're done
-        var bb: any = new Blob([ab], { type: mimeString });
+        let bb: any = new Blob([ab], { type: mimeString });
 
         if (bb) resolve(bb)
         else reject('Falha ao criar Blob!');
