@@ -57,6 +57,7 @@ export class Resize {
     /**
      * Gera as thumbnails a partir dos dados
      * informados no constructor
+     * @param fromEXIF parâmetro opcional para rotacionar a foto de acordo com os dados EXIF da mesma 
      */
     async generateThumbs(fromEXIF?: boolean): Promise<string[]> {
         const quant: number = this._thumbs_config.length; // Quantidade de miniaturas a ser geradas
@@ -75,14 +76,9 @@ export class Resize {
                 quality: this._thumbs_config[cnt].quality
             }
 
-            // Corrige a rotação da imagem de acordo com os dados EXIF
-            if (fromEXIF) {
-                let orientation: number = await this.getOrientation().catch(e => { return e });
-                await this.resetOrientation(orientation).catch(e => { return e });
-            }
-
+            // return getCanvas
             // Gera thumb e retorna em base64
-            return await this.drawNewThumb(data);
+            return await this.drawNewThumb(data, fromEXIF);
         }
 
         let thumbsPromises: Promise<any>[] = []
@@ -98,22 +94,25 @@ export class Resize {
      */
     private createCanvas(): Promise<Canvas> {
         return new Promise((resolve, reject) => {
-            this._image = new Image();
+            let img = new Image();
 
-            this._image.onload = () => {
-                this._canvas = document.createElement("canvas");
-                let ctx = (this._canvas.getContext("2d") as CanvasRenderingContext2D);
+            img.onload = () => {
+                let canvas = document.createElement("canvas");
+                let ctx = (canvas.getContext("2d") as CanvasRenderingContext2D);
 
-                ctx.drawImage(this._image, 0, 0);
+                let elements: Canvas = { img: img, canvas: canvas };
 
-                resolve({ img: this._image, canvas: this._canvas });
+                // Desenha canvas da imagem sem EXIF
+                ctx.drawImage(img, 0, 0);
+                resolve(elements);
+
             }
 
             if (typeof this._file === 'string')
-                this._image.src = this._file;
+                img.src = this._file;
             else {
                 this.readFile().then((base64: string) => {
-                    this._image.src = base64;
+                    img.src = base64;
                 }).catch((error) => {
                     reject(error);
                 });
@@ -125,13 +124,14 @@ export class Resize {
     }
 
     /**
-     * Resedenha uma foto dentro de um canvas com um tamanho
+     * Redesenha uma foto dentro de um canvas com um tamanho
      * pré-definido
      * @param size Tamanho da thumb
      * @param img elemento imagem renderizado
      * @param canvas elemento canvas criado
+     * @param fromEXIF Rotaciona a foto de acordo com os dados EXIF da mesma
      */
-    private async drawNewThumb(data: Draw_Image): Promise<string> {
+    private async drawNewThumb(data: Draw_Image, fromEXIF?: boolean): Promise<string> {
         let MAX_WIDTH = data.size;
         let MAX_HEIGHT = data.size;
         let img_width = data.img.width;
@@ -152,6 +152,14 @@ export class Resize {
         data.canvas.width = img_width;
         data.canvas.height = img_height;
         let ctx = (data.canvas.getContext("2d") as CanvasRenderingContext2D);
+
+        // Corrige a rotação da imagem de acordo com os dados EXIF
+        if (fromEXIF) {
+            let elements: Canvas = { img: data.img, canvas: data.canvas };
+            let orientation: number = await this.getOrientation().catch(e => { return e });
+            await this.resetOrientation(orientation, elements).catch(e => { return e });
+        }
+
         ctx.drawImage(data.img, 0, 0, img_width, img_height);
 
         return data.canvas.toDataURL(data.type, data.quality); // O segundo parâmetro é um int de 0 a 1 que indica a qualidade da imagem
@@ -252,33 +260,39 @@ export class Resize {
         });
     }
 
-    async resetOrientation(srcOrientation: number): Promise<void> {
-        let width = this._image.width,
-            height = this._image.height,
-            ctx = this._canvas.getContext("2d");
+    async resetOrientation(srcOrientation: number, elements: Canvas): Promise<Canvas> {
+        return new Promise((resolve, reject) => {
+            let width = elements.canvas.width,
+                height = elements.canvas.height,
+                ctx = elements.canvas.getContext("2d");
 
-        // set proper canvas dimensions before transform & export
-        if (4 < srcOrientation && srcOrientation < 9) {
-            this._canvas.width = height;
-            this._canvas.height = width;
-        } else {
-            this._canvas.width = width;
-            this._canvas.height = height;
-        }
+            // set proper canvas dimensions before transform & export
+            if (4 < srcOrientation && srcOrientation < 9) {
+                elements.canvas.width = height;
+                elements.canvas.height = width;
+            } else {
+                elements.canvas.width = width;
+                elements.canvas.height = height;
+            }
 
-        // transform context before drawing image
-        switch (srcOrientation) {
-            case 2: ctx.transform(-1, 0, 0, 1, width, 0); break;
-            case 3: ctx.transform(-1, 0, 0, -1, width, height); break;
-            case 4: ctx.transform(1, 0, 0, -1, 0, height); break;
-            case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
-            case 6: ctx.transform(0, 1, -1, 0, height, 0); break;
-            case 7: ctx.transform(0, -1, -1, 0, height, width); break;
-            case 8: ctx.transform(0, -1, 1, 0, 0, width); break;
-            default: break;
-        }
+            // transform context before drawing image
+            switch (srcOrientation) {
+                case 2: ctx.transform(-1, 0, 0, 1, width, 0); break;
+                case 3: ctx.transform(-1, 0, 0, -1, width, height); break;
+                case 4: ctx.transform(1, 0, 0, -1, 0, height); break;
+                case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+                case 6: ctx.transform(0, 1, -1, 0, height, 0); break;
+                case 7: ctx.transform(0, -1, -1, 0, height, width); break;
+                case 8: ctx.transform(0, -1, 1, 0, 0, width); break;
+                default: break;
+            }
 
-        return;
+            // draw image
+            // ctx.drawImage(elements.img, 0, 0);
+
+            resolve(elements);
+        })
+
     }
 
 }
@@ -366,25 +380,12 @@ export function base64ToBlob(base64: string): Promise<Blob> {
 //         {
 //             size: 100,
 //             type: "image/jpeg",
-//             quality: 0.1
-//         },
-//         {
-//             size: 100,
-//             type: "image/png",
-//             quality: 1
 //         },
 //         {
 //             size: 200,
 //             type: "image/png",
-//             quality: 0.1
-//         },
-//         {
-//             size: 700,
-//             type: "image/jpeg",
-//             quality: 1
-//         },
+//         }
 //     ]
-
 
 //     let resize = new Resize(file, config_thumb);
 
@@ -393,25 +394,76 @@ export function base64ToBlob(base64: string): Promise<Blob> {
 //     // document.body.appendChild(original);
 
 
-//     resize.generateThumbs().then((result: string[]) => {
+//     resize.generateThumbs(true).then((result: string[]) => {
 //         result.map((base64: string) => {
+
 //             let thumb = new Image();
 //             thumb.src = base64;
 //             thumb.style.margin = "25px";
 //             document.body.appendChild(thumb);
 
-//             resize.base64ToBlob(base64).then((value: any) => {
-//                 resize.getOrientation((e: number) => {
-//                     value.orientation = e;
-//                     console.log(value);
-//                 })
-//             });
+
+//             // resize.base64ToBlob(base64).then((value: any) => {
+//             //     resize.getOrientation((e: number) => {
+//             //         value.orientation = e;
+//             //         console.log(value);
+//             //     })
+//             // });
 
 //         });
 
+//         resize.getOrientation().then((orientation) => {
+//             reset(result[0], orientation, (base64: string) => {
+//                 let thumb = new Image();
+//                 thumb.src = base64;
+//                 thumb.style.margin = "25px";
+//                 document.body.appendChild(thumb);
+
+//             })
+//         })
 
 //     }).catch((error) => {
 //         console.error(error);
 //     });
 
+// }
+
+// function reset(srcBase64: string, srcOrientation: number, callback: Function) {
+//     var img = new Image();
+
+//     img.onload = function () {
+//         var width = img.width,
+//             height = img.height,
+//             canvas = document.createElement('canvas'),
+//             ctx = canvas.getContext("2d");
+
+//         // set proper canvas dimensions before transform & export
+//         if (4 < srcOrientation && srcOrientation < 9) {
+//             canvas.width = height;
+//             canvas.height = width;
+//         } else {
+//             canvas.width = width;
+//             canvas.height = height;
+//         }
+
+//         // transform context before drawing image
+//         switch (srcOrientation) {
+//             case 2: ctx.transform(-1, 0, 0, 1, width, 0); break;
+//             case 3: ctx.transform(-1, 0, 0, -1, width, height); break;
+//             case 4: ctx.transform(1, 0, 0, -1, 0, height); break;
+//             case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+//             case 6: ctx.transform(0, 1, -1, 0, height, 0); break;
+//             case 7: ctx.transform(0, -1, -1, 0, height, width); break;
+//             case 8: ctx.transform(0, -1, 1, 0, 0, width); break;
+//             default: break;
+//         }
+
+//         // draw image
+//         ctx.drawImage(img, 0, 0);
+
+//         // export base64
+//         callback(canvas.toDataURL("image/jpeg"));
+//     };
+
+//     img.src = srcBase64;
 // }
